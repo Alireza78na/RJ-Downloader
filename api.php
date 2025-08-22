@@ -56,12 +56,13 @@ function fetchContent(string $url): array {
     ]);
     $html = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
     curl_close($ch);
 
     if ($httpCode !== 200 || empty($html)) {
         return ['error' => 'خطا در ارتباط با سرور رادیو جوان.'];
     }
-    return ['html' => $html];
+        return ['html' => $html, 'url' => $effectiveUrl];
 }
 
 // Extracts the __NEXT_DATA__ JSON block from the page's HTML.
@@ -97,15 +98,15 @@ function processRequest(string $input): array {
     $isSearch = !filter_var($input, FILTER_VALIDATE_URL);
 
     if ($isSearch) {
-        $url = 'https://www.radiojavan.com/searchs/mp3?q=' . urlencode($input);
+        $requestUrl = 'https://www.radiojavan.com/searchs/mp3?q=' . urlencode($input);
     } else {
-        $url = $input;
+        $requestUrl = $input;
         // Ensure the URL has a scheme for parse_url to work correctly.
-        if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
-            $url = "https://" . $url;
+        if (!preg_match("~^(?:f|ht)tps?://~i", $requestUrl)) {
+            $requestUrl = "https://" . $requestUrl;
         }
 
-        $host = parse_url($url, PHP_URL_HOST);
+        $host = parse_url($requestUrl, PHP_URL_HOST);
 
         // Remove www. from host to simplify check
         $host = preg_replace('/^www\./', '', $host);
@@ -117,8 +118,11 @@ function processRequest(string $input): array {
         }
     }
 
-    $fetchResult = fetchContent($url);
+    $fetchResult = fetchContent($requestUrl);
     if (isset($fetchResult['error'])) return $fetchResult;
+
+    // Use the final URL from fetchResult for content type detection
+    $finalUrl = $fetchResult['url'];
 
     $jsonResult = extractJsonData($fetchResult['html']);
     if (isset($jsonResult['error'])) return $jsonResult;
@@ -133,11 +137,11 @@ function processRequest(string $input): array {
         foreach($songs as $item) {
              $result['items'][] = ['title' => $item['name'] ?? 'بی‌نام', 'artist' => $item['artist'] ?? 'ناشناس', 'cover' => $item['photo_500'] ?? '', 'download_url' => $item['link'] ?? ''];
         }
-    } else if (str_contains($url, "/song/") || str_contains($url, "/podcast/")) {
+    } else if (str_contains($finalUrl, "/song/") || str_contains($finalUrl, "/podcast/") || str_contains($finalUrl, "/mp3/")) {
         $media = $pageProps['media'];
-        $result['type'] = 'song';
+        $result['type'] = 'song'; // Treat mp3 and podcast as 'song' type for simplicity
         $result['items'][] = ['title' => $media['song'] ?? $media['title'] ?? 'بی‌نام', 'artist' => $media['artist'] ?? 'ناشناس', 'cover' => $media['photo_hd'] ?? $media['photo'] ?? '', 'download_url' => $media['link'] ?? ''];
-    } elseif (str_contains($url, "/video/")) {
+    } elseif (str_contains($finalUrl, "/video/")) {
         $media = $pageProps['media'];
         $qualities = [];
         if (!empty($media['lq_link'])) $qualities['کیفیت پایین'] = $media['lq_link'];
@@ -145,7 +149,7 @@ function processRequest(string $input): array {
         if (!empty($media['hd_4k_link'])) $qualities['4K'] = $media['hd_4k_link'];
         $result['type'] = 'video';
         $result['items'][] = ['title' => $media['song'] ?? 'بی‌نام', 'artist' => $media['artist'] ?? 'ناشناس', 'cover' => $media['photo_hd'] ?? $media['photo'] ?? '', 'qualities' => $qualities];
-    } elseif (str_contains($url, "/playlist/")) {
+    } elseif (str_contains($finalUrl, "/playlist/")) {
         $playlistItems = $pageProps['playlist']['items'] ?? [];
         $result['type'] = 'playlist';
         $result['playlist_name'] = htmlspecialchars($pageProps['playlist']['name'] ?? 'پلی‌لیست');
