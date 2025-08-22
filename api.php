@@ -30,7 +30,7 @@ define('RATE_LIMIT_ENABLED', true);
 define('RATE_LIMIT_SECONDS', 2); // Only 1 request per 2 seconds per IP
 define('RATE_LIMIT_DIR', __DIR__ . '/rate_limit_logs/');
 
-if (RATE_LIMIT_ENABLED) {
+if (RATE_LIMIT_ENABLED && is_writable(RATE_LIMIT_DIR)) {
     $ip = $_SERVER['REMOTE_ADDR'];
     $logFile = RATE_LIMIT_DIR . md5($ip);
 
@@ -39,6 +39,7 @@ if (RATE_LIMIT_ENABLED) {
         echo json_encode(['results' => [['error' => 'شما در هر ۲ ثانیه فقط یک درخواست می‌توانید ارسال کنید.']]] );
         exit;
     }
+    // Only update the timestamp if the directory is writable
     touch($logFile);
 }
 
@@ -79,7 +80,7 @@ function processRequest(string $input): array {
     define('CACHE_TTL', 3600); // 1 hour
     define('CACHE_DIR', __DIR__ . '/cache/');
 
-    if (CACHE_ENABLED) {
+    if (CACHE_ENABLED && is_writable(CACHE_DIR)) {
         $cacheKey = md5($input) . '.json';
         $cacheFile = CACHE_DIR . $cacheKey;
 
@@ -145,7 +146,7 @@ function processRequest(string $input): array {
     $finalResult = ['data' => $result];
 
     // --- Save to Cache ---
-    if (CACHE_ENABLED && isset($cacheFile)) {
+    if (CACHE_ENABLED && isset($cacheFile) && is_writable(CACHE_DIR)) {
         file_put_contents($cacheFile, json_encode($finalResult));
     }
 
