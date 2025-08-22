@@ -56,7 +56,7 @@ header("Referrer-Policy: no-referrer-when-downgrade");
     <div id="toast" class="toast"></div>
 
     <!-- Modal for "Download All" -->
-    <div id="download-all-modal" class="modal-overlay" style="display: none;">
+    <div id="download-all-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="modal-close-btn">&times;</button>
             <h3>لینک‌های دانلود پلی‌لیست</h3>

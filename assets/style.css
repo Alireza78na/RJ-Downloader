@@ -102,6 +102,9 @@ textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3
     display: flex; justify-content: center; align-items: center;
     z-index: 2000;
 }
+.modal-overlay.hidden {
+    display: none;
+}
 .modal-content {
     background-color: var(--card-bg); color: var(--text);
     padding: 2rem; border-radius: 16px;
