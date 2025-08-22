@@ -110,7 +110,7 @@ function processRequest(string $input): array {
         // Remove www. from host to simplify check
         $host = preg_replace('/^www\./', '', $host);
 
-        $allowed_hosts = ['radiojavan.com', 'play.radiojavan.com', 'rj.com'];
+        $allowed_hosts = ['radiojavan.com', 'play.radiojavan.com', 'rj.com', 'rj.app'];
 
         if (!$host || !in_array($host, $allowed_hosts)) {
             return ['error' => "لینک وارد شده نامعتبر است یا پشتیبانی نمی‌شود: " . htmlspecialchars($input)];
