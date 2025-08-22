@@ -169,17 +169,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const showModal = () => modal.classList.remove('hidden');
     const hideModal = () => modal.classList.add('hidden');
 
-    closeModalBtn.addEventListener('click', hideModal);
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) hideModal();
-    });
-    copyAllBtn.addEventListener('click', () => {
-        modalLinks.select();
-        navigator.clipboard.writeText(modalLinks.value).then(() => {
-            showToast('تمام لینک‌ها با موفقیت کپی شد!');
-            hideModal();
+    if(closeModalBtn) {
+        closeModalBtn.addEventListener('click', hideModal);
+    }
+    if(modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal();
         });
-    });
+    }
+    if(copyAllBtn) {
+        copyAllBtn.addEventListener('click', () => {
+            modalLinks.select();
+            navigator.clipboard.writeText(modalLinks.value).then(() => {
+                showToast('تمام لینک‌ها با موفقیت کپی شد!');
+                hideModal();
+            });
+        });
+    }
 
     // --- Event Delegation for Dynamic Buttons ---
     resultsArea.addEventListener('click', (e) => {
