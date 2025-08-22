@@ -1,3 +1,18 @@
+<?php
+// --- Security Headers ---
+// A strict CSP helps prevent XSS attacks.
+$csp = "default-src 'self'; ";
+$csp .= "script-src 'self'; "; // JavaScript only from the same origin
+$csp .= "style-src 'self' https://fonts.googleapis.com; "; // CSS from self and Google Fonts
+$csp .= "font-src 'self' https://fonts.gstatic.com; "; // Fonts from self and Google Fonts
+$csp .= "img-src 'self' https: data:; "; // Images from self, any HTTPS source, and data URIs
+$csp .= "connect-src 'self';"; // AJAX requests only to self
+header("Content-Security-Policy: " . $csp);
+
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: DENY");
+header("Referrer-Policy: no-referrer-when-downgrade");
+?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -45,8 +60,12 @@
         <div class="modal-content">
             <button class="modal-close-btn">&times;</button>
             <h3>لینک‌های دانلود پلی‌لیست</h3>
-            <p>لینک‌های زیر را کپی کرده و در نرم‌افزار مدیریت دانلود خود وارد کنید.</p>
+            <p>برای کپی کردن تمام لینک‌ها از دکمه زیر استفاده کنید.</p>
             <textarea id="download-all-links" readonly></textarea>
+            <button id="copy-all-btn" class="main-button" style="margin-top: 1rem;">
+                <svg width="20" height="20"><use href="#icon-copy"/></svg>
+                <span>کپی همه لینک‌ها</span>
+            </button>
         </div>
     </div>
 
