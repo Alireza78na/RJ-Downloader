@@ -95,10 +95,26 @@ function processRequest(string $input): array {
     }
 
     $isSearch = !filter_var($input, FILTER_VALIDATE_URL);
-    $url = $isSearch ? 'https://www.radiojavan.com/searchs/mp3?q=' . urlencode($input) : $input;
 
-    if (!$isSearch && !str_contains($input, 'radiojavan.com')) {
-        return ['error' => "لینک وارد شده نامعتبر است: " . htmlspecialchars($input)];
+    if ($isSearch) {
+        $url = 'https://www.radiojavan.com/searchs/mp3?q=' . urlencode($input);
+    } else {
+        $url = $input;
+        // Ensure the URL has a scheme for parse_url to work correctly.
+        if (!preg_match("~^(?:f|ht)tps?://~i", $url)) {
+            $url = "https://" . $url;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+
+        // Remove www. from host to simplify check
+        $host = preg_replace('/^www\./', '', $host);
+
+        $allowed_hosts = ['radiojavan.com', 'play.radiojavan.com', 'rj.com'];
+
+        if (!$host || !in_array($host, $allowed_hosts)) {
+            return ['error' => "لینک وارد شده نامعتبر است یا پشتیبانی نمی‌شود: " . htmlspecialchars($input)];
+        }
     }
 
     $fetchResult = fetchContent($url);
