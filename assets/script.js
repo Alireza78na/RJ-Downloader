@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const historyContainer = document.getElementById('history-buttons');
     let isLoading = false;
+    let pageReady = false;
+    window.addEventListener('load', () => {
+        setTimeout(() => { pageReady = true; }, 100);
+    });
 
     // --- Theme Manager ---
     const applyTheme = (theme) => {
@@ -61,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Form Submission (AJAX) ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (isLoading || inputArea.value.trim() === '') return;
+        if (!pageReady || isLoading || inputArea.value.trim() === '') return;
 
         isLoading = true;
         submitBtn.disabled = true;
@@ -162,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.querySelector('.modal-close-btn');
     const copyAllBtn = document.getElementById('copy-all-btn');
 
-    const showModal = () => modal.style.display = 'flex';
-    const hideModal = () => modal.style.display = 'none';
+    const showModal = () => modal.classList.remove('hidden');
+    const hideModal = () => modal.classList.add('hidden');
 
     closeModalBtn.addEventListener('click', hideModal);
     modal.addEventListener('click', (e) => {
