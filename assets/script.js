@@ -6,11 +6,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsArea = document.getElementById('results-area');
     const themeToggle = document.getElementById('theme-toggle');
     const historyContainer = document.getElementById('history-buttons');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
     let isLoading = false;
-    let pageReady = false;
-    window.addEventListener('load', () => {
-        setTimeout(() => { pageReady = true; }, 100);
-    });
+
+    const resetUI = () => {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').textContent = 'پردازش';
+        loader.style.display = 'none';
+        isLoading = false;
+    };
 
     // --- Theme Manager ---
     const applyTheme = (theme) => {
@@ -35,8 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- History Manager ---
     let history = JSON.parse(localStorage.getItem('rj_history')) || [];
     const updateHistory = (newItem) => {
-        if (!history.find(h => h.source === newItem.source)) {
-            history.unshift(newItem);
+        // Optimization: Store only essential data
+        const historyItem = {
+            source: newItem.source,
+            type: newItem.type,
+            title: newItem.type === 'playlist' ? newItem.playlist_name : newItem.items[0].title,
+            query: newItem.query || ''
+        };
+
+        if (!history.find(h => h.source === historyItem.source)) {
+            history.unshift(historyItem);
             history = history.slice(0, 5);
             localStorage.setItem('rj_history', JSON.stringify(history));
             renderHistory();
@@ -44,13 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const renderHistory = () => {
         historyContainer.innerHTML = history.length > 0 ? '<small>تاریخچه اخیر:</small>' : '';
+        if(clearHistoryBtn) {
+            clearHistoryBtn.style.display = history.length > 0 ? 'block' : 'none';
+        }
         history.forEach(item => {
             const btn = document.createElement('button');
             let text;
             if (item.type === 'playlist') {
-                text = `پلی‌لیست: ${item.playlist_name}`;
+                text = `پلی‌لیست: ${item.title}`;
             } else if (item.source.includes('http')) {
-                text = item.items[0].title;
+                text = item.title;
             } else {
                 text = `جستجو: ${item.query}`;
             }
@@ -60,12 +75,23 @@ document.addEventListener('DOMContentLoaded', () => {
             historyContainer.appendChild(btn);
         });
     };
+
+    if(clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', () => {
+            localStorage.removeItem('rj_history');
+            history = [];
+            renderHistory();
+            showToast('تاریخچه با موفقیت پاک شد.');
+        });
+    }
     renderHistory();
+
+    resetUI(); // Call it once on initial load
 
     // --- Form Submission (AJAX) ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!pageReady || isLoading || inputArea.value.trim() === '') return;
+        if (isLoading || inputArea.value.trim() === '') return;
 
         isLoading = true;
         submitBtn.disabled = true;
