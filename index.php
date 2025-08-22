@@ -41,7 +41,10 @@ header("Referrer-Policy: no-referrer-when-downgrade");
                 <textarea id="input-area" placeholder="...لینک آهنگ، پلی‌لیست، ویدیو یا عبارت مورد نظر برای جستجو را وارد کنید"></textarea>
                 <button type="submit" id="submit-btn" class="main-button"><svg><use href="#icon-search"/></svg><span>پردازش</span></button>
             </form>
-            <div id="history"><div id="history-buttons"></div></div>
+            <div id="history">
+                <div id="history-buttons"></div>
+                <button id="clear-history-btn" class="clear-history-btn" style="display: none;">پاک کردن تاریخچه</button>
+            </div>
         </div>
         <div id="loader" class="loader" style="display: none;"><div class="spinner"></div></div>
         <div id="results-area">

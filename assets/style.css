@@ -41,6 +41,15 @@ textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3
     border-radius: 20px; cursor: pointer; transition: all 0.2s ease;
 }
 #history button:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.clear-history-btn {
+    background: none; border: none; font-family: var(--font-family);
+    color: var(--text-muted); font-size: 0.8rem; cursor: pointer;
+    padding: 0.5rem; margin-top: 0.5rem; display: block;
+    transition: color 0.2s ease;
+}
+.clear-history-btn:hover {
+    color: var(--accent);
+}
 .result-group { margin-top: 2rem; }
 .result-group-header { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; padding: 0.5rem 1rem; background: var(--bg-2); border-radius: 8px; overflow-wrap: break-word; }
 .media-card {
