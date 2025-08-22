@@ -25,6 +25,24 @@ set_error_handler(function($severity, $message, $file, $line) {
 
 header('Content-Type: application/json');
 
+// --- Rate Limiting ---
+define('RATE_LIMIT_ENABLED', true);
+define('RATE_LIMIT_SECONDS', 2); // Only 1 request per 2 seconds per IP
+define('RATE_LIMIT_DIR', __DIR__ . '/rate_limit_logs/');
+
+if (RATE_LIMIT_ENABLED) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $logFile = RATE_LIMIT_DIR . md5($ip);
+
+    if (file_exists($logFile) && (time() - filemtime($logFile) < RATE_LIMIT_SECONDS)) {
+        header('HTTP/1.1 429 Too Many Requests');
+        echo json_encode(['results' => [['error' => 'شما در هر ۲ ثانیه فقط یک درخواست می‌توانید ارسال کنید.']]] );
+        exit;
+    }
+    touch($logFile);
+}
+
+
 // Fetches content from a URL using cURL.
 function fetchContent(string $url): array {
     $ch = curl_init();
@@ -56,6 +74,25 @@ function extractJsonData(string $html): array {
 
 // Processes a single request, which can be a URL or a search query.
 function processRequest(string $input): array {
+    // --- Caching Logic ---
+    define('CACHE_ENABLED', true);
+    define('CACHE_TTL', 3600); // 1 hour
+    define('CACHE_DIR', __DIR__ . '/cache/');
+
+    if (CACHE_ENABLED) {
+        $cacheKey = md5($input) . '.json';
+        $cacheFile = CACHE_DIR . $cacheKey;
+
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile) < CACHE_TTL)) {
+            $cachedData = json_decode(file_get_contents($cacheFile), true);
+            if ($cachedData) {
+                // To signify it's a cached result, we can add a flag (optional)
+                $cachedData['cached'] = true;
+                return $cachedData;
+            }
+        }
+    }
+
     $isSearch = !filter_var($input, FILTER_VALIDATE_URL);
     $url = $isSearch ? 'https://www.radiojavan.com/searchs/mp3?q=' . urlencode($input) : $input;
 
@@ -105,7 +142,14 @@ function processRequest(string $input): array {
     if (empty($result['items'])) return ['error' => 'محتوایی برای ورودی شما یافت نشد.'];
 
     $result['source'] = $input;
-    return ['data' => $result];
+    $finalResult = ['data' => $result];
+
+    // --- Save to Cache ---
+    if (CACHE_ENABLED && isset($cacheFile)) {
+        file_put_contents($cacheFile, json_encode($finalResult));
+    }
+
+    return $finalResult;
 }
 
 // Main controller for AJAX: processes one or more lines of input.

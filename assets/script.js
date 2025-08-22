@@ -86,7 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (result.error) {
                         showToast(`خطا: ${result.error}`);
                     } else if (result.data) {
-                        resultsArea.insertAdjacentHTML('beforeend', renderResultGroup(result.data));
+                            const groupHtml = renderResultGroup(result.data);
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = groupHtml;
+
+                            // Animate cards
+                            const cards = tempDiv.querySelectorAll('.media-card');
+                            cards.forEach((card, index) => {
+                                setTimeout(() => {
+                                    card.classList.add('visible');
+                                }, index * 100);
+                            });
+
+                            resultsArea.appendChild(tempDiv.firstElementChild);
                         if (result.data.type !== 'search') updateHistory(result.data);
                     }
                 });
@@ -148,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('download-all-modal');
     const modalLinks = document.getElementById('download-all-links');
     const closeModalBtn = document.querySelector('.modal-close-btn');
+    const copyAllBtn = document.getElementById('copy-all-btn');
 
     const showModal = () => modal.style.display = 'flex';
     const hideModal = () => modal.style.display = 'none';
@@ -155,6 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn.addEventListener('click', hideModal);
     modal.addEventListener('click', (e) => {
         if (e.target === modal) hideModal();
+    });
+    copyAllBtn.addEventListener('click', () => {
+        modalLinks.select();
+        navigator.clipboard.writeText(modalLinks.value).then(() => {
+            showToast('تمام لینک‌ها با موفقیت کپی شد!');
+            hideModal();
+        });
     });
 
     // --- Event Delegation for Dynamic Buttons ---
